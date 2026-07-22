@@ -1,142 +1,773 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pulse. — Medical Study Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  
-  <style>
-    * { font-family: 'Inter', sans-serif; }
-    body { background: #0B1220; color: #F1F5F9; }
-    .card { background: #111C33; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.5rem; }
-    
-    /* Dynamic Tab Visibility */
-    .tab-content { display: none; }
-    .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>pulse. — Medical Study Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { font-family: 'Inter', sans-serif; }
+  .font-display { font-family: 'Space Grotesk', sans-serif; }
+  .font-mono-stat { font-family: 'JetBrains Mono', monospace; }
 
-    /* Navigation styling */
-    .nav-btn {
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      color: #94A3B8;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-    .nav-btn.active, .nav-btn:hover {
-      color: #FFFFFF;
-      background: rgba(255, 255, 255, 0.1);
-    }
-  </style>
+  body { background: #0B1220; color: #F1F5F9; transition: background-color .3s, color .3s; }
+  body.light { background: #F8FAFC; color: #0F172A; }
+
+  .card { background: #111C33; border: 1px solid rgba(255,255,255,0.05); transition: all .3s; }
+  body.light .card { background: #FFFFFF; border: 1px solid #E2E8F0; }
+
+  .card-hover:hover { border-color: rgba(34,211,238,0.3); background: #132140; }
+  body.light .card-hover:hover { border-color: rgba(34,211,238,0.4); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08); }
+
+  .surface { background: #0B1220; border: 1px solid rgba(255,255,255,0.05); }
+  body.light .surface { background: #F8FAFC; border: 1px solid #E2E8F0; }
+
+  .input-bg { background: rgba(255,255,255,0.05); }
+  body.light .input-bg { background: #F1F5F9; }
+
+  .text-dim { color: #94A3B8; }
+  body.light .text-dim { color: #475569; }
+
+  .text-faint { color: #64748B; }
+  body.light .text-faint { color: #94A3B8; }
+
+  .border-soft { border-color: rgba(255,255,255,0.05); }
+  body.light .border-soft { border-color: #E2E8F0; }
+
+  .ecg-path {
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
+    animation: ecgDraw 3.2s linear infinite;
+  }
+  @keyframes ecgDraw {
+    0% { stroke-dashoffset: 600; }
+    60% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: -20; }
+  }
+  @keyframes flamePulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(245,158,11,0)); }
+    50% { transform: scale(1.08); filter: drop-shadow(0 0 6px rgba(245,158,11,0.5)); }
+  }
+  .flame-pulse { animation: flamePulse 2.2s ease-in-out infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ecg-path, .flame-pulse { animation: none !important; }
+  }
+
+  .pill { display:inline-flex; align-items:center; gap:4px; border-radius:9999px; padding:4px 10px; font-size:11px; font-weight:600; }
+  .pill-cyan { background: rgba(34,211,238,0.1); color:#22D3EE; box-shadow: inset 0 0 0 1px rgba(34,211,238,0.3); }
+  body.light .pill-cyan { background:#ECFEFF; color:#0E7490; box-shadow: inset 0 0 0 1px #A5F3FC; }
+  .pill-violet { background: rgba(167,139,250,0.1); color:#A78BFA; box-shadow: inset 0 0 0 1px rgba(167,139,250,0.3); }
+  body.light .pill-violet { background:#F5F3FF; color:#6D28D9; box-shadow: inset 0 0 0 1px #DDD6FE; }
+  .pill-amber { background: rgba(251,191,36,0.1); color:#FBBF24; box-shadow: inset 0 0 0 1px rgba(251,191,36,0.3); }
+  body.light .pill-amber { background:#FFFBEB; color:#B45309; box-shadow: inset 0 0 0 1px #FDE68A; }
+  .pill-green { background: rgba(52,211,153,0.1); color:#34D399; box-shadow: inset 0 0 0 1px rgba(52,211,153,0.3); }
+  body.light .pill-green { background:#ECFDF5; color:#047857; box-shadow: inset 0 0 0 1px #A7F3D0; }
+
+  .opt-btn { text-align:left; border-radius:12px; padding:12px 16px; font-size:14px; font-weight:500; border:1px solid; transition: all .15s; cursor:pointer; }
+  .opt-correct { border-color: rgba(52,211,153,0.5); background: rgba(52,211,153,0.1); color:#34D399; }
+  .opt-wrong { border-color: rgba(251,113,133,0.5); background: rgba(251,113,133,0.1); color:#FB7185; }
+
+  /* Language switcher */
+  .lang-switch { display:flex; align-items:center; border-radius:9999px; padding:3px; gap:2px; }
+  .lang-btn { border-radius:9999px; padding:5px 10px; font-size:12px; font-weight:700; font-family:'JetBrains Mono',monospace; letter-spacing:.02em; transition: all .2s; cursor:pointer; border:none; background:transparent; color:#64748B; }
+  .lang-btn.active { background: linear-gradient(135deg,#22D3EE,#0EA5E9); color:#0B1220; }
+  body.light .lang-btn { color:#94A3B8; }
+  body.light .lang-btn.active { color:#0B1220; }
+</style>
 </head>
-<body class="p-4 md:p-8">
+<body class="min-h-screen w-full">
 
-  <!-- Responsive Navigation Header -->
-  <header class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center pb-6 border-b border-gray-800 mb-8 gap-4">
-    <div class="text-2xl font-bold tracking-tight">pulse<span class="text-cyan-400">.</span></div>
-    <nav class="flex flex-wrap gap-2 justify-center">
-      <button class="nav-btn active" onclick="switchTab(event, 'dashboard')">Dashboard</button>
-      <button class="nav-btn" onclick="switchTab(event, 'decks')">Decks</button>
-      <button class="nav-btn" onclick="switchTab(event, 'cases')">Cases</button>
-      <button class="nav-btn" onclick="switchTab(event, 'anatomy')">Anatomy</button>
+<!-- ============= NAV ============= -->
+<header class="sticky top-0 z-30 backdrop-blur-md border-b border-soft" style="background: rgba(11,18,32,0.8);" id="navHeader">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="h-8 w-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg,#22D3EE,#0284C7);">
+        <i data-lucide="activity" class="h-4 w-4 text-white"></i>
+      </div>
+      <span class="font-display text-lg font-bold tracking-tight">pulse<span class="text-cyan-400">.</span></span>
+    </div>
+
+    <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-dim">
+      <a class="text-current" href="#" style="color:inherit;" data-i18n="nav.dashboard">Dashboard</a>
+      <a class="hover:text-cyan-400 transition-colors" href="#" data-i18n="nav.decks">Decks</a>
+      <a class="hover:text-cyan-400 transition-colors" href="#" data-i18n="nav.cases">Cases</a>
+      <a class="hover:text-cyan-400 transition-colors" href="#" data-i18n="nav.anatomy">Anatomy</a>
     </nav>
-  </header>
 
-  <!-- Main Dynamic Views -->
-  <main class="max-w-6xl mx-auto">
-
-    <!-- DASHBOARD TAB -->
-    <section id="dashboard" class="tab-content active">
-      <div class="card mb-6">
-        <h1 class="text-2xl font-bold mb-2">Welcome back, Future Doctor.</h1>
-        <p class="text-gray-400">You're on a 7-day streak. 15 more high-yield reps to close out today's goal.</p>
+    <div class="flex items-center gap-3">
+      <div class="hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1.5 pill-amber">
+        <i data-lucide="flame" class="h-4 w-4 flame-pulse" style="color:#F59E0B;"></i>
+        <span class="font-mono-stat text-sm font-bold" style="color:#F59E0B;" id="streakNav">7</span>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="card"><h3 class="font-bold text-cyan-400">120 / 150</h3><p class="text-sm text-gray-400">Flashcards completed</p></div>
-        <div class="card"><h3 class="font-bold text-cyan-400">80%</h3><p class="text-sm text-gray-400">Accuracy rate</p></div>
-        <div class="card"><h3 class="font-bold text-cyan-400">7 Days</h3><p class="text-sm text-gray-400">Current Streak</p></div>
-      </div>
-    </section>
 
-    <!-- DECKS TAB -->
-    <section id="decks" class="tab-content">
-      <h2 class="text-xl font-bold mb-4">High-Yield Flashcard Decks</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="card">
-          <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">42 Due</span>
-          <h3 class="font-bold text-lg mt-2">Pathology Deck</h3>
-          <p class="text-sm text-gray-400 mt-1">Robbins-aligned cardiovascular, renal, and pulmonary high-yield cards.</p>
-          <button class="mt-4 w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-2 rounded-lg">Review Deck</button>
-        </div>
-        <div class="card">
-          <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded">31 Due</span>
-          <h3 class="font-bold text-lg mt-2">Pharmacology Deck</h3>
-          <p class="text-sm text-gray-400 mt-1">Autonomic drugs, antimicrobial mechanisms, and side effect profiles.</p>
-          <button class="mt-4 w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-2 rounded-lg">Review Deck</button>
-        </div>
-        <div class="card">
-          <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded">18 Due</span>
-          <h3 class="font-bold text-lg mt-2">Microbiology Deck</h3>
-          <p class="text-sm text-gray-400 mt-1">Gram-positive/negative bacteria, viral cycles, and medical mycology.</p>
-          <button class="mt-4 w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-2 rounded-lg">Review Deck</button>
-        </div>
+      <!-- Language switcher -->
+      <div class="lang-switch input-bg ring-1 border-soft" role="group" aria-label="Language switcher">
+        <button id="langEn" class="lang-btn" data-lang="en">EN</button>
+        <button id="langFr" class="lang-btn" data-lang="fr">FR</button>
       </div>
-    </section>
 
-    <!-- CASES TAB -->
-    <section id="cases" class="tab-content">
-      <h2 class="text-xl font-bold mb-4">Clinical Case Simulator</h2>
-      <div class="card">
-        <div class="flex justify-between items-center mb-2">
-          <h3 class="font-bold text-lg">Case #104: Acute Chest Pain</h3>
-          <span class="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded">Cardiology</span>
-        </div>
-        <p class="text-gray-300 mb-4">A 58-year-old male presents with sudden-onset tearing chest pain radiating to the back. BP is 190/110 in the right arm and 150/90 in the left arm.</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <button class="p-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-left border border-gray-700">Acute Myocardial Infarction</button>
-          <button class="p-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-left border border-gray-700">Aortic Dissection</button>
-          <button class="p-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-left border border-gray-700">Pulmonary Embolism</button>
-          <button class="p-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-left border border-gray-700">Esophageal Rupture</button>
-        </div>
+      <button id="themeToggle" class="h-9 w-9 rounded-full flex items-center justify-center ring-1 border-soft input-bg hover:ring-cyan-400/40 transition-colors">
+        <i data-lucide="sun" class="h-4 w-4" style="color:#FBBF24;" id="themeIcon"></i>
+      </button>
+      <div class="h-9 w-9 rounded-full flex items-center justify-center text-white text-sm font-bold font-display" style="background: linear-gradient(135deg,#A78BFA,#22D3EE);">MD</div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+
+  <!-- ============= HERO ============= -->
+  <section class="relative overflow-hidden rounded-3xl card px-6 sm:px-10 py-8 sm:py-10">
+    <div class="absolute -top-24 -right-24 h-64 w-64 rounded-full pointer-events-none" style="background:rgba(34,211,238,0.1); filter: blur(60px);"></div>
+    <div class="absolute -bottom-24 -left-16 h-64 w-64 rounded-full pointer-events-none" style="background:rgba(167,139,250,0.1); filter: blur(60px);"></div>
+
+    <div class="relative flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+      <div class="max-w-xl">
+        <span class="pill pill-cyan"><i data-lucide="sparkles" class="h-3 w-3"></i> <span data-i18n="hero.eyebrow">Step 1 · Week 6</span></span>
+        <h1 class="font-display text-3xl sm:text-4xl font-bold mt-4 leading-tight" data-i18n="hero.title">Welcome back, Future Doctor.</h1>
+        <p class="mt-2 text-sm sm:text-base text-dim" id="heroSubtext">You're on a <span id="streakText">7</span>-day streak. Fifteen more high-yield reps and today's goal is closed out.</p>
+
+        <button id="drillBtn" class="mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all hover:-translate-y-0.5"
+          style="background: linear-gradient(135deg,#22D3EE,#0EA5E9); color:#0B1220; box-shadow: 0 10px 25px -5px rgba(14,165,233,0.3);">
+          <i data-lucide="zap" class="h-4 w-4"></i>
+          <span data-i18n="hero.cta">Start Daily High-Yield Drill</span>
+          <i data-lucide="arrow-right" class="h-4 w-4"></i>
+        </button>
       </div>
-    </section>
 
-    <!-- ANATOMY TAB -->
-    <section id="anatomy" class="tab-content">
-      <h2 class="text-xl font-bold mb-4">3D Anatomy Explorer</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="card">
-          <h3 class="font-bold text-lg">Thorax & Brachial Plexus</h3>
-          <p class="text-sm text-gray-400 mt-1">Dissect intercostal neurovascular bundles, cardiac valves, and nerve roots (C5–T1).</p>
-          <button class="mt-4 bg-cyan-500 hover:bg-cyan-600 text-black font-semibold px-4 py-2 rounded-lg">Launch 3D Explorer</button>
+      <!-- Vitals strip -->
+      <div class="w-full lg:w-80 rounded-2xl surface p-5">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[11px] uppercase tracking-widest font-semibold text-faint" data-i18n="hero.vitals">Daily Vitals</span>
+          <i data-lucide="heart" class="h-3.5 w-3.5" style="color:#FB7185;"></i>
         </div>
-        <div class="card">
-          <h3 class="font-bold text-lg">Neuroanatomy & Cranial Nerves</h3>
-          <p class="text-sm text-gray-400 mt-1">Inspect brainstem cross-sections, Circle of Willis, and cranial nerve pathways.</p>
-          <button class="mt-4 bg-cyan-500 hover:bg-cyan-600 text-black font-semibold px-4 py-2 rounded-lg">Launch 3D Explorer</button>
+        <div class="w-full overflow-hidden h-8 -my-1 opacity-70">
+          <svg viewBox="0 0 600 40" preserveAspectRatio="none" class="w-full h-full">
+            <path d="M0 20 H210 L225 6 L240 34 L255 2 L268 20 H600" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ecg-path"/>
+          </svg>
+        </div>
+
+        <div class="flex items-end justify-between mt-1">
+          <div>
+            <div class="font-mono-stat text-2xl font-bold"><span id="goalDone">120</span><span class="text-sm font-medium text-faint">/150</span></div>
+            <div class="text-xs text-dim" data-i18n="hero.flashcardsDone">Flashcards completed</div>
+          </div>
+          <div class="font-mono-stat text-xl font-bold text-cyan-400"><span id="goalPct">80</span>%</div>
+        </div>
+
+        <div class="mt-3 h-2 w-full rounded-full overflow-hidden input-bg">
+          <div id="goalBar" class="h-full rounded-full transition-all duration-700" style="width:80%; background: linear-gradient(90deg,#22D3EE,#34D399);"></div>
+        </div>
+
+        <div class="flex items-center gap-1.5 mt-3">
+          <i data-lucide="flame" class="h-3.5 w-3.5" style="color:#F59E0B;"></i>
+          <span class="text-xs text-dim" id="streakSubtext"><span id="streakText2">7</span>-day streak · personal best 21</span>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-  </main>
+  <!-- ============= STUDY HUB ============= -->
+  <section>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-display text-xl font-bold" data-i18n="hub.title">Study Hub</h2>
+      <span class="text-xs text-faint" data-i18n="hub.subtitle">4 modules · updated today</span>
+    </div>
 
-  <!-- Tab Switching Script -->
-  <script>
-    function switchTab(event, tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      
-      document.getElementById(tabId).classList.add('active');
-      event.currentTarget.classList.add('active');
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <!-- Anatomy Explorer -->
+      <div class="group rounded-2xl card card-hover p-6 transition-all cursor-pointer">
+        <div class="flex items-start justify-between">
+          <div class="h-11 w-11 rounded-xl flex items-center justify-center" style="background: rgba(34,211,238,0.12); box-shadow: inset 0 0 0 1px rgba(34,211,238,0.2);">
+            <i data-lucide="layers" class="h-5 w-5 text-cyan-400"></i>
+          </div>
+          <i data-lucide="chevron-right" class="h-4 w-4 text-faint group-hover:translate-x-1 group-hover:text-cyan-400 transition-all"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg mt-4" data-i18n="anatomy.title">3D Anatomy Explorer</h3>
+        <p class="text-sm mt-1 text-dim" data-i18n="anatomy.desc">Rotate, layer, and dissect interactive body-region models — from brachial plexus to renal fascia.</p>
+        <div class="flex items-center gap-2 mt-4 flex-wrap">
+          <span class="pill pill-cyan" data-i18n="anatomy.tag1">Thorax</span>
+          <span class="pill pill-cyan" data-i18n="anatomy.tag2">Neuroanatomy</span>
+          <span class="pill pill-cyan" data-i18n="anatomy.tag3">+6 regions</span>
+        </div>
+      </div>
+
+      <!-- Mnemonics -->
+      <div class="rounded-2xl card card-hover p-6 transition-all">
+        <div class="h-11 w-11 rounded-xl flex items-center justify-center" style="background: rgba(167,139,250,0.12); box-shadow: inset 0 0 0 1px rgba(167,139,250,0.2);">
+          <i data-lucide="brain" class="h-5 w-5" style="color:#A78BFA;"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg mt-4" data-i18n="mnemonics.title">Mnemonics & Memory Palace</h3>
+
+        <div class="mt-3 flex items-center gap-2 rounded-lg px-3 py-2 input-bg">
+          <i data-lucide="search" class="h-3.5 w-3.5 text-faint"></i>
+          <input id="mnemonicSearch" class="bg-transparent outline-none text-sm w-full" style="color:inherit;" />
+        </div>
+
+        <div id="mnemonicList" class="mt-3 space-y-2 max-h-36 overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- SRS Flashcards -->
+      <div class="rounded-2xl card card-hover p-6 transition-all">
+        <div class="flex items-start justify-between">
+          <div class="h-11 w-11 rounded-xl flex items-center justify-center" style="background: rgba(52,211,153,0.12); box-shadow: inset 0 0 0 1px rgba(52,211,153,0.2);">
+            <i data-lucide="rotate-ccw" class="h-5 w-5" style="color:#34D399;"></i>
+          </div>
+          <span class="pill pill-green" data-i18n="srs.badge">Spaced Repetition</span>
+        </div>
+        <h3 class="font-display font-bold text-lg mt-4" data-i18n="srs.title">Gamified SRS Flashcards</h3>
+        <p class="text-sm mt-1 text-dim" data-i18n="srs.desc">Decks due for review, ranked by urgency.</p>
+
+        <div class="mt-4 space-y-2" id="deckList"></div>
+
+        <button class="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-xl font-bold text-sm py-2.5 transition-colors"
+          style="background: rgba(52,211,153,0.1); box-shadow: inset 0 0 0 1px rgba(52,211,153,0.3); color:#34D399;">
+          <i data-lucide="timer" class="h-4 w-4"></i>
+          <span data-i18n="srs.cta">Start 10-Min Rapid Review</span>
+        </button>
+      </div>
+
+      <!-- Clinical Case Simulator -->
+      <div class="rounded-2xl card card-hover p-6 transition-all">
+        <div class="h-11 w-11 rounded-xl flex items-center justify-center" style="background: rgba(251,113,133,0.12); box-shadow: inset 0 0 0 1px rgba(251,113,133,0.2);">
+          <i data-lucide="stethoscope" class="h-5 w-5" style="color:#FB7185;"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg mt-4" data-i18n="case.title">Clinical Case Simulator</h3>
+        <p class="text-sm mt-2 text-dim" data-i18n="case.scenario">"Patient presents with sudden chest pain radiating to the back, BP mismatch between arms. What's your top differential?"</p>
+
+        <div id="caseOptions" class="mt-4 grid grid-cols-2 gap-2"></div>
+        <p id="caseFeedback" class="text-xs mt-3 rounded-lg px-3 py-2 input-bg text-dim hidden"></p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============= DAILY QUIZ ============= -->
+  <section>
+    <h2 class="font-display text-xl font-bold mb-4" data-i18n="quiz.heading">High-Yield Daily Quiz</h2>
+    <div class="rounded-2xl card p-6 sm:p-8">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="pill pill-amber"><i data-lucide="clock" class="h-3 w-3"></i> <span data-i18n="quiz.time">60 sec</span></span>
+        <span class="pill pill-cyan" data-i18n="quiz.subject">Cardiology</span>
+      </div>
+      <p class="font-medium text-base sm:text-lg leading-relaxed" data-i18n="quiz.stem">A 58-year-old man presents with sudden-onset tearing chest pain radiating to the back. BP is 190/110 in the right arm and 150/90 in the left. What is the most likely diagnosis?</p>
+
+      <div id="quizOptions" class="mt-5 grid sm:grid-cols-2 gap-3"></div>
+
+      <div id="quizExplanation" class="mt-5 rounded-xl px-4 py-3 card hidden">
+        <p class="text-sm text-dim"><span class="font-bold text-cyan-400" data-i18n="quiz.explanationLabel">Explanation. </span><span data-i18n="quiz.explanation">Tearing pain radiating to the back plus a blood-pressure discrepancy between arms is the classic vignette for aortic dissection — always check both arms before you anchor on ACS.</span></p>
+      </div>
+
+      <div class="flex items-center justify-between mt-6 flex-wrap gap-3">
+        <span class="text-xs text-faint" data-i18n="quiz.confidencePrompt">How confident were you?</span>
+        <div class="flex gap-2">
+          <button id="confEasy" class="text-xs font-bold rounded-full px-4 py-2 input-bg border-soft border transition-colors" style="box-shadow: inset 0 0 0 1px transparent;" data-i18n="quiz.tooEasy">Too Easy</button>
+          <button id="confReview" class="text-xs font-bold rounded-full px-4 py-2 input-bg border-soft border transition-colors" style="box-shadow: inset 0 0 0 1px transparent;" data-i18n="quiz.needReview">Need Review</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= LEADERBOARD ============= -->
+  <section>
+    <h2 class="font-display text-xl font-bold mb-4" data-i18n="lb.heading">Weekly Leaderboard</h2>
+    <div class="rounded-2xl card p-6 sm:p-8">
+      <div class="flex flex-col lg:flex-row gap-8">
+        <div class="lg:w-64 shrink-0">
+          <div class="flex items-center gap-2">
+            <i data-lucide="trophy" class="h-5 w-5" style="color:#FBBF24;"></i>
+            <span class="text-xs uppercase tracking-widest font-semibold text-faint" data-i18n="lb.thisWeek">This week</span>
+          </div>
+          <div class="font-mono-stat text-3xl font-bold mt-2">4,460 XP</div>
+          <div class="flex items-center gap-1.5 mt-1">
+            <i data-lucide="trending-up" class="h-3.5 w-3.5" style="color:#34D399;"></i>
+            <span class="text-xs font-medium" style="color:#34D399;" data-i18n="lb.rank">Rank #2 of 214</span>
+          </div>
+
+          <div class="mt-5 space-y-2">
+            <div class="flex items-center gap-2">
+              <div class="h-7 w-7 rounded-full flex items-center justify-center" style="background: rgba(167,139,250,0.1); box-shadow: inset 0 0 0 1px rgba(167,139,250,0.3);">
+                <i data-lucide="pill" class="h-3.5 w-3.5" style="color:#A78BFA;"></i>
+              </div>
+              <span class="text-xs font-medium text-dim" data-i18n="lb.badge1">Pharm Master</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="h-7 w-7 rounded-full flex items-center justify-center" style="background: rgba(251,191,36,0.1); box-shadow: inset 0 0 0 1px rgba(251,191,36,0.3);">
+                <i data-lucide="flame" class="h-3.5 w-3.5" style="color:#FBBF24;"></i>
+              </div>
+              <span class="text-xs font-medium text-dim" data-i18n="lb.badge2">7-Day Streak</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="h-7 w-7 rounded-full flex items-center justify-center" style="background: rgba(34,211,238,0.1); box-shadow: inset 0 0 0 1px rgba(34,211,238,0.3);">
+                <i data-lucide="bone" class="h-3.5 w-3.5 text-cyan-400"></i>
+              </div>
+              <span class="text-xs font-medium text-dim" data-i18n="lb.badge3">Anatomy Ace</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex-1 space-y-2" id="leaderboardList"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="text-center text-xs text-faint pb-6" data-i18n="footer.text">pulse. — built for the boards, not for burnout.</footer>
+</main>
+
+<script>
+  // =====================================================================
+  // i18n dictionary
+  // =====================================================================
+  const I18N = {
+    en: {
+      nav: { dashboard: "Dashboard", decks: "Decks", cases: "Cases", anatomy: "Anatomy" },
+      hero: {
+        eyebrow: "Step 1 · Week 6",
+        title: "Welcome back, Future Doctor.",
+        subtext: "You're on a {streak}-day streak. Fifteen more high-yield reps and today's goal is closed out.",
+        cta: "Start Daily High-Yield Drill",
+        vitals: "Daily Vitals",
+        flashcardsDone: "Flashcards completed",
+        streakSubtext: "{streak}-day streak · personal best 21"
+      },
+      hub: { title: "Study Hub", subtitle: "4 modules · updated today" },
+      anatomy: {
+        title: "3D Anatomy Explorer",
+        desc: "Rotate, layer, and dissect interactive body-region models — from brachial plexus to renal fascia.",
+        tag1: "Thorax", tag2: "Neuroanatomy", tag3: "+6 regions"
+      },
+      mnemonics: {
+        title: "Mnemonics & Memory Palace",
+        searchPlaceholder: "Search mnemonics…",
+        noMatches: "No matches — try a different term.",
+        items: [
+          { title: "Cranial Nerves", line: "Oh Oh Oh To Touch And Feel Very Green Vegetables AH", tag: "Neuro" },
+          { title: "Brachial Plexus", line: "Randy Travis Drinks Cold Beer", tag: "Anatomy" },
+          { title: "Clotting Cascade", line: "Please Go Check Out The Warfarin", tag: "Heme" }
+        ]
+      },
+      srs: {
+        badge: "Spaced Repetition",
+        title: "Gamified SRS Flashcards",
+        desc: "Decks due for review, ranked by urgency.",
+        cta: "Start 10-Min Rapid Review",
+        due: "due",
+        decks: [
+          { name: "Pathology", color: "#0EA5E9", icon: "activity" },
+          { name: "Pharmacology", color: "#A78BFA", icon: "pill" },
+          { name: "Microbiology", color: "#22C55E", icon: "bug" }
+        ],
+        counts: [42, 31, 18]
+      },
+      case: {
+        title: "Clinical Case Simulator",
+        scenario: "\"Patient presents with sudden chest pain radiating to the back, BP mismatch between arms. What's your top differential?\"",
+        options: ["Acute pericarditis", "STEMI", "Aortic dissection", "Panic attack"],
+        correctFeedback: "Correct — the arm BP differential is the tell for aortic dissection.",
+        wrongFeedback: "Not quite. Re-check the BP discrepancy between arms — that's the key finding here."
+      },
+      quiz: {
+        heading: "High-Yield Daily Quiz",
+        time: "60 sec",
+        subject: "Cardiology",
+        stem: "A 58-year-old man presents with sudden-onset tearing chest pain radiating to the back. BP is 190/110 in the right arm and 150/90 in the left. What is the most likely diagnosis?",
+        options: ["Acute myocardial infarction", "Aortic dissection", "Pulmonary embolism", "Esophageal rupture"],
+        explanationLabel: "Explanation. ",
+        explanation: "Tearing pain radiating to the back plus a blood-pressure discrepancy between arms is the classic vignette for aortic dissection — always check both arms before you anchor on ACS.",
+        confidencePrompt: "How confident were you?",
+        tooEasy: "Too Easy",
+        needReview: "Need Review"
+      },
+      lb: {
+        heading: "Weekly Leaderboard",
+        thisWeek: "This week",
+        rank: "Rank #2 of 214",
+        badge1: "Pharm Master",
+        badge2: "7-Day Streak",
+        badge3: "Anatomy Ace",
+        of: "of",
+        entries: [
+          { name: "Priya S.", xp: "4,820 XP" },
+          { name: "You", xp: "4,460 XP", isUser: true },
+          { name: "Daniel O.", xp: "4,210 XP" },
+          { name: "Marcus T.", xp: "3,990 XP" }
+        ]
+      },
+      footer: { text: "pulse. — built for the boards, not for burnout." }
+    },
+    fr: {
+      nav: { dashboard: "Tableau de bord", decks: "Paquets", cases: "Cas cliniques", anatomy: "Anatomie" },
+      hero: {
+        eyebrow: "Étape 1 · Semaine 6",
+        title: "Content de te revoir, futur médecin.",
+        subtext: "Tu es sur une série de {streak} jours. Encore quinze révisions à haut rendement et l'objectif du jour est atteint.",
+        cta: "Démarrer la série express du jour",
+        vitals: "Signes vitaux du jour",
+        flashcardsDone: "Cartes mémoire complétées",
+        streakSubtext: "Série de {streak} jours · record personnel 21"
+      },
+      hub: { title: "Espace d'étude", subtitle: "4 modules · mis à jour aujourd'hui" },
+      anatomy: {
+        title: "Explorateur d'anatomie 3D",
+        desc: "Fais pivoter, superpose et dissèque des modèles interactifs par région du corps — du plexus brachial au fascia rénal.",
+        tag1: "Thorax", tag2: "Neuroanatomie", tag3: "+6 régions"
+      },
+      mnemonics: {
+        title: "Mnémotechniques & palais de mémoire",
+        searchPlaceholder: "Rechercher un moyen mnémotechnique…",
+        noMatches: "Aucun résultat — essaie un autre terme.",
+        items: [
+          { title: "Nerfs crâniens", line: "Oh Oh Oh To Touch And Feel Very Green Vegetables AH", tag: "Neuro" },
+          { title: "Plexus brachial", line: "Randy Travis Drinks Cold Beer", tag: "Anatomie" },
+          { title: "Cascade de coagulation", line: "Please Go Check Out The Warfarin", tag: "Hémato" }
+        ]
+      },
+      srs: {
+        badge: "Répétition espacée",
+        title: "Cartes mémoire gamifiées (SRS)",
+        desc: "Paquets à réviser, classés par urgence.",
+        cta: "Révision rapide de 10 minutes",
+        due: "à réviser",
+        decks: [
+          { name: "Pathologie", color: "#0EA5E9", icon: "activity" },
+          { name: "Pharmacologie", color: "#A78BFA", icon: "pill" },
+          { name: "Microbiologie", color: "#22C55E", icon: "bug" }
+        ],
+        counts: [42, 31, 18]
+      },
+      case: {
+        title: "Simulateur de cas clinique",
+        scenario: "« Le patient présente une douleur thoracique soudaine irradiant vers le dos, avec un écart de tension artérielle entre les bras. Quel est ton premier diagnostic différentiel ? »",
+        options: ["Péricardite aiguë", "STEMI", "Dissection aortique", "Attaque de panique"],
+        correctFeedback: "Correct — l'écart de tension artérielle entre les bras est le signe clé de la dissection aortique.",
+        wrongFeedback: "Pas tout à fait. Revérifie l'écart de tension artérielle entre les bras — c'est l'élément clé ici."
+      },
+      quiz: {
+        heading: "Quiz quotidien à haut rendement",
+        time: "60 sec",
+        subject: "Cardiologie",
+        stem: "Un homme de 58 ans présente une douleur thoracique déchirante d'apparition soudaine, irradiant vers le dos. La tension artérielle est de 190/110 au bras droit et de 150/90 au bras gauche. Quel est le diagnostic le plus probable ?",
+        options: ["Infarctus du myocarde aigu", "Dissection aortique", "Embolie pulmonaire", "Rupture œsophagienne"],
+        explanationLabel: "Explication. ",
+        explanation: "Une douleur déchirante irradiant vers le dos associée à un écart de tension artérielle entre les bras est le tableau classique de la dissection aortique — vérifie toujours les deux bras avant de te fixer sur un SCA.",
+        confidencePrompt: "Quel était ton niveau de confiance ?",
+        tooEasy: "Trop facile",
+        needReview: "À revoir"
+      },
+      lb: {
+        heading: "Classement hebdomadaire",
+        thisWeek: "Cette semaine",
+        rank: "Rang #2 sur 214",
+        badge1: "Maître en pharmaco",
+        badge2: "Série de 7 jours",
+        badge3: "As de l'anatomie",
+        of: "sur",
+        entries: [
+          { name: "Priya S.", xp: "4 820 XP" },
+          { name: "Toi", xp: "4 460 XP", isUser: true },
+          { name: "Daniel O.", xp: "4 210 XP" },
+          { name: "Marcus T.", xp: "3 990 XP" }
+        ]
+      },
+      footer: { text: "pulse. — conçu pour les examens, pas pour l'épuisement." }
     }
-  </script>
+  };
+
+  // =====================================================================
+  // State
+  // =====================================================================
+  const body = document.body;
+  let isDark = true;
+  let lang = localStorage.getItem('pulse_lang') || 'en';
+  let streak = 7;
+
+  function t(path) {
+    const parts = path.split('.');
+    let node = I18N[lang];
+    for (const p of parts) node = node && node[p];
+    return node;
+  }
+
+  function interpolate(str, vars) {
+    return str.replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : `{${k}}`));
+  }
+
+  // =====================================================================
+  // Theme toggle
+  // =====================================================================
+  const themeToggle = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+
+  function applyTheme() {
+    body.classList.toggle('light', !isDark);
+    themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+    themeIcon.style.color = isDark ? '#FBBF24' : '#475569';
+    document.getElementById('navHeader').style.background = isDark ? 'rgba(11,18,32,0.8)' : 'rgba(248,250,252,0.8)';
+    lucide.createIcons();
+  }
+  themeToggle.addEventListener('click', () => { isDark = !isDark; applyTheme(); });
+
+  // =====================================================================
+  // Language switcher
+  // =====================================================================
+  const langEnBtn = document.getElementById('langEn');
+  const langFrBtn = document.getElementById('langFr');
+
+  function setLanguage(newLang) {
+    lang = newLang;
+    localStorage.setItem('pulse_lang', lang);
+    document.documentElement.lang = lang;
+    langEnBtn.classList.toggle('active', lang === 'en');
+    langFrBtn.classList.toggle('active', lang === 'fr');
+    renderAll();
+  }
+  langEnBtn.addEventListener('click', () => setLanguage('en'));
+  langFrBtn.addEventListener('click', () => setLanguage('fr'));
+
+  // =====================================================================
+  // Static text (data-i18n) rendering
+  // =====================================================================
+  function renderStaticText() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const val = t(key);
+      if (typeof val === 'string') el.textContent = val;
+    });
+    document.getElementById('mnemonicSearch').placeholder = t('mnemonics.searchPlaceholder');
+    document.getElementById('heroSubtext').firstChild.textContent = '';
+  }
+
+  function renderHeroDynamic() {
+    document.getElementById('streakNav').textContent = streak;
+    document.getElementById('streakText').textContent = streak;
+    document.getElementById('streakText2').textContent = streak;
+    const subtextTemplate = t('hero.subtext');
+    const parts = subtextTemplate.split('{streak}');
+    const heroSubtextEl = document.getElementById('heroSubtext');
+    heroSubtextEl.innerHTML = `${parts[0]}<span id="streakText">${streak}</span>${parts[1] || ''}`;
+
+    const streakSubTemplate = t('hero.streakSubtext');
+    const sParts = streakSubTemplate.split('{streak}');
+    document.getElementById('streakSubtext').innerHTML = `<span id="streakText2">${streak}</span>${sParts[1] || ''}`;
+  }
+
+  // =====================================================================
+  // Daily goal
+  // =====================================================================
+  let goalDone = 120;
+  const goalTarget = 150;
+  const goalDoneEl = document.getElementById('goalDone');
+  const goalPctEl = document.getElementById('goalPct');
+  const goalBarEl = document.getElementById('goalBar');
+  document.getElementById('drillBtn').addEventListener('click', () => {
+    goalDone = Math.min(goalTarget, goalDone + 10);
+    const pct = Math.round((goalDone / goalTarget) * 100);
+    goalDoneEl.textContent = goalDone;
+    goalPctEl.textContent = pct;
+    goalBarEl.style.width = pct + '%';
+  });
+
+  // =====================================================================
+  // Mnemonics search
+  // =====================================================================
+  const mnemonicList = document.getElementById('mnemonicList');
+  function renderMnemonics(query) {
+    const items = t('mnemonics.items');
+    const q = (query || '').toLowerCase();
+    const filtered = items.filter(m => (m.title + m.line + m.tag).toLowerCase().includes(q));
+    mnemonicList.innerHTML = '';
+    if (filtered.length === 0) {
+      const p = document.createElement('p');
+      p.className = 'text-xs text-faint';
+      p.textContent = t('mnemonics.noMatches');
+      mnemonicList.appendChild(p);
+      return;
+    }
+    filtered.forEach(m => {
+      const div = document.createElement('div');
+      div.className = 'rounded-lg border-soft border px-3 py-2';
+      div.style.background = isDark ? 'rgba(255,255,255,0.02)' : '#F8FAFC';
+      div.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold">${m.title}</span>
+          <span class="pill pill-violet">${m.tag}</span>
+        </div>
+        <p class="text-xs mt-0.5 italic text-dim">"${m.line}"</p>
+      `;
+      mnemonicList.appendChild(div);
+    });
+  }
+  document.getElementById('mnemonicSearch').addEventListener('input', (e) => renderMnemonics(e.target.value));
+
+  // =====================================================================
+  // SRS deck list
+  // =====================================================================
+  const deckListEl = document.getElementById('deckList');
+  function renderDecks() {
+    const decks = t('srs.decks');
+    const counts = t('srs.counts');
+    const dueWord = t('srs.due');
+    deckListEl.innerHTML = '';
+    decks.forEach((d, i) => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between';
+      row.innerHTML = `
+        <div class="flex items-center gap-2">
+          <i data-lucide="${d.icon}" class="h-3.5 w-3.5" style="color:${d.color};"></i>
+          <span class="text-sm font-medium">${d.name}</span>
+        </div>
+        <span class="font-mono-stat text-xs font-bold" style="color:${d.color};">${counts[i]} ${dueWord}</span>
+      `;
+      deckListEl.appendChild(row);
+    });
+    lucide.createIcons();
+  }
+
+  // =====================================================================
+  // Clinical case simulator
+  // =====================================================================
+  const caseCorrect = 2;
+  const caseOptionsEl = document.getElementById('caseOptions');
+  const caseFeedbackEl = document.getElementById('caseFeedback');
+  let caseChosen = null;
+
+  function renderCaseOptions() {
+    const options = t('case.options');
+    caseOptionsEl.innerHTML = '';
+    options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn text-xs';
+      const revealed = caseChosen !== null;
+      if (revealed && i === caseCorrect) btn.classList.add('opt-correct');
+      else if (revealed && i === caseChosen) btn.classList.add('opt-wrong');
+      else {
+        btn.classList.add('input-bg', 'border-soft');
+        btn.style.color = isDark ? '#94A3B8' : '#475569';
+      }
+      btn.textContent = opt;
+      btn.addEventListener('click', () => {
+        caseChosen = i;
+        renderCaseOptions();
+        caseFeedbackEl.classList.remove('hidden');
+        caseFeedbackEl.textContent = i === caseCorrect ? t('case.correctFeedback') : t('case.wrongFeedback');
+      });
+      caseOptionsEl.appendChild(btn);
+    });
+  }
+
+  // =====================================================================
+  // Daily quiz
+  // =====================================================================
+  const quizCorrect = 1;
+  const quizOptionsEl = document.getElementById('quizOptions');
+  const quizExplanationEl = document.getElementById('quizExplanation');
+  let quizChosen = null;
+
+  function renderQuizOptions() {
+    const options = t('quiz.options');
+    quizOptionsEl.innerHTML = '';
+    options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn text-sm flex items-center justify-between';
+      const revealed = quizChosen !== null;
+      if (revealed && i === quizCorrect) btn.classList.add('opt-correct');
+      else if (revealed && i === quizChosen) btn.classList.add('opt-wrong');
+      else {
+        btn.classList.add('input-bg', 'border-soft');
+      }
+      btn.innerHTML = `<span>${opt}</span>`;
+      if (revealed && i === quizCorrect) btn.innerHTML += '<i data-lucide="check" class="h-4 w-4 shrink-0"></i>';
+      if (revealed && i === quizChosen && i !== quizCorrect) btn.innerHTML += '<i data-lucide="x" class="h-4 w-4 shrink-0"></i>';
+      if (!revealed) {
+        btn.addEventListener('click', () => {
+          quizChosen = i;
+          renderQuizOptions();
+          quizExplanationEl.classList.remove('hidden');
+        });
+      } else {
+        btn.disabled = true;
+        btn.style.cursor = 'default';
+      }
+      quizOptionsEl.appendChild(btn);
+    });
+    lucide.createIcons();
+  }
+
+  document.getElementById('confEasy').addEventListener('click', function() {
+    this.style.background = 'rgba(52,211,153,0.2)';
+    this.style.boxShadow = 'inset 0 0 0 1px rgba(52,211,153,0.5)';
+    this.style.color = '#34D399';
+    const other = document.getElementById('confReview');
+    other.style.background = ''; other.style.boxShadow = ''; other.style.color = '';
+  });
+  document.getElementById('confReview').addEventListener('click', function() {
+    this.style.background = 'rgba(251,191,36,0.2)';
+    this.style.boxShadow = 'inset 0 0 0 1px rgba(251,191,36,0.5)';
+    this.style.color = '#FBBF24';
+    const other = document.getElementById('confEasy');
+    other.style.background = ''; other.style.boxShadow = ''; other.style.color = '';
+  });
+
+  // =====================================================================
+  // Leaderboard
+  // =====================================================================
+  const leaderboardListEl = document.getElementById('leaderboardList');
+  function renderLeaderboard() {
+    const entries = t('lb.entries');
+    const icons = ['crown', 'medal', null, null];
+    const iconColors = ['#FBBF24', '#94A3B8'];
+    leaderboardListEl.innerHTML = '';
+    entries.forEach((p, i) => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between rounded-xl px-4 py-3' + (p.isUser ? ' pill-cyan' : '');
+      if (p.isUser) {
+        row.style.boxShadow = 'inset 0 0 0 1px rgba(34,211,238,0.3)';
+      } else {
+        row.style.background = 'rgba(255,255,255,0.02)';
+      }
+      let rankMarkup;
+      if (i === 0) rankMarkup = `<i data-lucide="crown" class="h-4 w-4" style="color:#FBBF24;"></i>`;
+      else if (i === 1) rankMarkup = `<i data-lucide="medal" class="h-4 w-4" style="color:#94A3B8;"></i>`;
+      else rankMarkup = `<span class="text-xs font-mono-stat font-bold text-faint">${i + 1}</span>`;
+
+      row.innerHTML = `
+        <div class="flex items-center gap-3">
+          <div class="w-5 flex justify-center">${rankMarkup}</div>
+          <span class="text-sm font-semibold ${p.isUser ? 'text-cyan-400' : ''}">${p.name}</span>
+        </div>
+        <span class="font-mono-stat text-sm font-bold">${p.xp}</span>
+      `;
+      leaderboardListEl.appendChild(row);
+    });
+    lucide.createIcons();
+  }
+
+  // =====================================================================
+  // Master render
+  // =====================================================================
+  function renderAll() {
+    renderStaticText();
+    renderHeroDynamic();
+    renderMnemonics(document.getElementById('mnemonicSearch').value);
+    renderDecks();
+    renderCaseOptions();
+    renderQuizOptions();
+    renderLeaderboard();
+    lucide.createIcons();
+  }
+
+  // =====================================================================
+  // Init
+  // =====================================================================
+  langEnBtn.classList.toggle('active', lang === 'en');
+  langFrBtn.classList.toggle('active', lang === 'fr');
+  applyTheme();
+  renderAll();
+</script>
 </body>
 </html>
